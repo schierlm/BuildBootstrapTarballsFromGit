@@ -1,0 +1,54 @@
+--- 1/configure.in
++++ 2/configure.in
+@@ -4,7 +4,7 @@
+ 
+ AC_PREREQ(2.54)
+ 
+-AC_REVISION([[$Id$]])
++AC_REVISION([[$Id: configure.in,v 1.114 2002/10/03 05:46:12 psmith Exp $]])
+ 
+ # Autoconf setup
+ AC_CONFIG_AUX_DIR(config)
+--- 1/doc/make.texi
++++ 2/doc/make.texi
+@@ -7,7 +7,7 @@
+ 
+ @c FSF publishers: format makebook.texi instead of using this file directly.
+ 
+-@set RCSID $Id$
++@set RCSID $Id: make.texi,v 1.9 2002/09/18 20:51:58 psmith Exp $
+ @set EDITION 0.60
+ @set VERSION 3.80
+ @set UPDATED 08 July 2002
+--- 1/getopt1.c
++++ 2/getopt1.c
+@@ -3,7 +3,7 @@
+      Free Software Foundation, Inc.
+ 
+    NOTE: The canonical source of this file is maintained with the GNU C Library.
+-   Bugs can be reported to bug-glibc@prep.ai.mit.edu.
++   Bugs can be reported to bug-glibc@gnu.org.
+ 
+    This program is free software; you can redistribute it and/or modify it
+    under the terms of the GNU General Public License as published by the
+--- 1/w32/include/sub_proc.h
++++ 2/w32/include/sub_proc.h
+@@ -4,14 +4,14 @@
+ /*
+  * Component Name: 
+  *
+- * $Date$
++ * $Date: 1997/08/27 20:34:23 $
+  *
+- * $Source$
++ * $Source: /cvsroot/make/make/w32/include/sub_proc.h,v $
+  *
+- * $Revision$
++ * $Revision: 1.4 $
+  */
+ 
+-/* $Id$ */
++/* $Id: sub_proc.h,v 1.4 1997/08/27 20:34:23 psmith Exp $ */
+ 
+ #ifdef WINDOWS32
+ 

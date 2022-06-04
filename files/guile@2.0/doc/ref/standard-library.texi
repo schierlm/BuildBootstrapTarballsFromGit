@@ -1,0 +1,1575 @@
+
+@c %start of fragment
+
+@menu 
+* statprof::             Statistical profiler
+* sxml apply-templates::  A more XSLT-like approach to SXML transformations
+* sxml fold::            Fold-based SXML transformation operators
+* sxml simple::          Convenient XML parsing and serializing
+* sxml ssax::            Functional-style XML parsing for Scheme
+* sxml ssax input-parse::  The SSAX tokenizer, optimized for Guile
+* sxml transform::       A higher-order SXML transformation operator, @code{pre-post-order}
+* sxml xpath::           XPath for SXML
+* texinfo::              Parse texinfo files or fragments into @code{stexi}, a scheme representation
+* texinfo docbook::      Transform a subset of docbook into @code{stexi}
+* texinfo html::         Transform @code{stexi} into HTML
+* texinfo indexing::     Extract an index from a piece of @code{stexi}
+* texinfo string-utils::  String utility functions used by the texinfo processor
+* texinfo plain-text::   Render @code{stexi} as plain text
+* texinfo serialize::    Render @code{stexi} as texinfo
+* texinfo reflection::   Enable texinfo across Guile's help system
+@end menu
+
+@node statprof
+@chapter (statprof)
+@section Overview
+@code{(statprof)} is intended to be a fairly simple statistical profiler
+for guile. It is in the early stages yet, so consider its output still
+suspect, and please report any bugs to @email{guile-devel at gnu.org},
+or to me directly at @email{rlb at defaultvalue.org}.
+
+A simple use of statprof would look like this:
+
+@example 
+  (statprof-reset 0 50000 #t)
+  (statprof-start)
+  (do-something)
+  (statprof-stop)
+  (statprof-display)
+@end example
+
+This would reset statprof, clearing all accumulated statistics, then
+start profiling, run some code, stop profiling, and finally display a
+gprof flat-style table of statistics which will look something like
+this:
+
+@example 
+  %   cumulative      self              self    total
+ time    seconds   seconds    calls  ms/call  ms/call  name
+ 35.29      0.23      0.23     2002     0.11     0.11  -
+ 23.53      0.15      0.15     2001     0.08     0.08  positive?
+ 23.53      0.15      0.15     2000     0.08     0.08  +
+ 11.76      0.23      0.08     2000     0.04     0.11  do-nothing
+  5.88      0.64      0.04     2001     0.02     0.32  loop
+  0.00      0.15      0.00        1     0.00   150.59  do-something
+ ...
+@end example
+
+All of the numerical data with the exception of the calls column is
+statistically approximate. In the following column descriptions, and in
+all of statprof, "time" refers to execution time (both user and system),
+not wall clock time.
+
+@table @asis
+@item % time
+The percent of the time spent inside the procedure itself (not counting
+children).
+
+@item cumulative seconds
+The total number of seconds spent in the procedure, including children.
+
+@item self seconds
+The total number of seconds spent in the procedure itself (not counting
+children).
+
+@item calls
+The total number of times the procedure was called.
+
+@item self ms/call
+The average time taken by the procedure itself on each call, in ms.
+
+@item total ms/call
+The average time taken by each call to the procedure, including time
+spent in child functions.
+
+@item name
+The name of the procedure.
+
+@end table
+
+The profiler uses @code{eq?} and the procedure object itself to identify
+the procedures, so it won't confuse different procedures with the same
+name. They will show up as two different rows in the output.
+
+Right now the profiler is quite simplistic. I cannot provide call-graphs
+or other higher level information. What you see in the table is pretty
+much all there is. Patches are welcome :-)
+
+@section Implementation notes
+The profiler works by setting the unix profiling signal
+@code{ITIMER_PROF} to go off after the interval you define in the call
+to @code{statprof-reset}. When the signal fires, a sampling routine is
+run which looks at the current procedure that's executing, and then
+crawls up the stack, and for each procedure encountered, increments that
+procedure's sample count. Note that if a procedure is encountered
+multiple times on a given stack, it is only counted once. After the
+sampling is complete, the profiler resets profiling timer to fire again
+after the appropriate interval.
+
+Meanwhile, the profiler keeps track, via @code{get-internal-run-time},
+how much CPU time (system and user -- which is also what
+@code{ITIMER_PROF} tracks), has elapsed while code has been executing
+within a statprof-start/stop block.
+
+The profiler also tries to avoid counting or timing its own code as much
+as possible.
+
+@section Usage
+@anchor{statprof statprof-active?}@defun statprof-active? 
+Returns @code{#t} if @code{statprof-start} has been called more times
+than @code{statprof-stop}, @code{#f} otherwise.
+
+@end defun
+
+@anchor{statprof statprof-start}@defun statprof-start 
+Start the profiler.@code{}
+
+@end defun
+
+@anchor{statprof statprof-stop}@defun statprof-stop 
+Stop the profiler.@code{}
+
+@end defun
+
+@anchor{statprof statprof-reset}@defun statprof-reset sample-seconds sample-microseconds count-calls? . full-stacks?
+Reset the statprof sampler interval to @var{sample-seconds} and
+@var{sample-microseconds}. If @var{count-calls?} is true, arrange to
+instrument procedure calls as well as collecting statistical profiling
+data. If @var{full-stacks?} is true, collect all sampled stacks into a
+list for later analysis.
+
+Enables traps and debugging as necessary.
+
+@end defun
+
+@anchor{statprof statprof-accumulated-time}@defun statprof-accumulated-time 
+Returns the time accumulated during the last statprof run.@code{}
+
+@end defun
+
+@anchor{statprof statprof-sample-count}@defun statprof-sample-count 
+Returns the number of samples taken during the last statprof run.@code{}
+
+@end defun
+
+@anchor{statprof statprof-fold-call-data}@defun statprof-fold-call-data proc init
+Fold @var{proc} over the call-data accumulated by statprof. Cannot be
+called while statprof is active. @var{proc} should take two arguments,
+@code{(@var{call-data} @var{prior-result})}.
+
+Note that a given proc-name may appear multiple times, but if it does,
+it represents different functions with the same name.
+
+@end defun
+
+@anchor{statprof statprof-proc-call-data}@defun statprof-proc-call-data proc
+Returns the call-data associated with @var{proc}, or @code{#f} if none
+is available.
+
+@end defun
+
+@anchor{statprof statprof-call-data-name}@defun statprof-call-data-name cd
+@end defun
+
+@anchor{statprof statprof-call-data-calls}@defun statprof-call-data-calls cd
+@end defun
+
+@anchor{statprof statprof-call-data-cum-samples}@defun statprof-call-data-cum-samples cd
+@end defun
+
+@anchor{statprof statprof-call-data-self-samples}@defun statprof-call-data-self-samples cd
+@end defun
+
+@anchor{statprof statprof-call-data->stats}@defun statprof-call-data->stats call-data
+Returns an object of type @code{statprof-stats}.
+
+@end defun
+
+@anchor{statprof statprof-stats-proc-name}@defun statprof-stats-proc-name stats
+@end defun
+
+@anchor{statprof statprof-stats-%-time-in-proc}@defun statprof-stats-%-time-in-proc stats
+@end defun
+
+@anchor{statprof statprof-stats-cum-secs-in-proc}@defun statprof-stats-cum-secs-in-proc stats
+@end defun
+
+@anchor{statprof statprof-stats-self-secs-in-proc}@defun statprof-stats-self-secs-in-proc stats
+@end defun
+
+@anchor{statprof statprof-stats-calls}@defun statprof-stats-calls stats
+@end defun
+
+@anchor{statprof statprof-stats-self-secs-per-call}@defun statprof-stats-self-secs-per-call stats
+@end defun
+
+@anchor{statprof statprof-stats-cum-secs-per-call}@defun statprof-stats-cum-secs-per-call stats
+@end defun
+
+@anchor{statprof statprof-display}@defun statprof-display . _
+Displays a gprof-like summary of the statistics collected. Unless an
+optional @var{port} argument is passed, uses the current output port.
+
+@end defun
+
+@anchor{statprof statprof-display-anomolies}@defun statprof-display-anomolies 
+A sanity check that attempts to detect anomolies in statprof's
+statistics.@code{}
+
+@end defun
+
+@anchor{statprof statprof-fetch-stacks}@defun statprof-fetch-stacks 
+Returns a list of stacks, as they were captured since the last call to
+@code{statprof-reset}.
+
+Note that stacks are only collected if the @var{full-stacks?} argument
+to @code{statprof-reset} is true.
+
+@end defun
+
+@anchor{statprof statprof-fetch-call-tree}@defun statprof-fetch-call-tree 
+@verbatim 
+Return a call tree for the previous statprof run.
+
+The return value is a list of nodes, each of which is of the type:
+@@code
+ node ::= (@@var@{proc@} @@var@{count@} . @@var@{nodes@})
+@@end code
+@end verbatim
+
+@end defun
+
+@anchor{statprof statprof}@defun statprof thunk [#:loop] [#:hz] [#:count-calls?] [#:full-stacks?]
+Profiles the execution of @var{thunk}.
+
+The stack will be sampled @var{hz} times per second, and the thunk
+itself will be called @var{loop} times.
+
+If @var{count-calls?} is true, all procedure calls will be recorded.
+This operation is somewhat expensive.
+
+If @var{full-stacks?} is true, at each sample, statprof will store away
+the whole call tree, for later analysis. Use
+@code{statprof-fetch-stacks} or @code{statprof-fetch-call-tree} to
+retrieve the last-stored stacks.
+
+@end defun
+
+@anchor{statprof with-statprof}@defspec with-statprof args
+Profiles the expressions in its body.
+
+Keyword arguments:
+
+@table @code
+@item #:loop
+Execute the body @var{loop} number of times, or @code{#f} for no looping
+
+default: @code{#f}
+
+@item #:hz
+Sampling rate
+
+default: @code{20}
+
+@item #:count-calls?
+Whether to instrument each function call (expensive)
+
+default: @code{#f}
+
+@item #:full-stacks?
+Whether to collect away all sampled stacks into a list
+
+default: @code{#f}
+
+@end table
+
+@end defspec
+
+@node sxml apply-templates
+@chapter (sxml apply-templates)
+@section Overview
+Pre-order traversal of a tree and creation of a new tree:
+
+@smallexample 
+	apply-templates:: tree x <templates> -> <new-tree>
+@end smallexample
+
+where
+
+@smallexample 
+ <templates> ::= (<template> ...)
+ <template>  ::= (<node-test> <node-test> ... <node-test> . <handler>)
+ <node-test> ::= an argument to node-typeof? above
+ <handler>   ::= <tree> -> <new-tree>
+@end smallexample
+
+This procedure does a @emph{normal}, pre-order traversal of an SXML
+tree. It walks the tree, checking at each node against the list of
+matching templates.
+
+If the match is found (which must be unique, i.e., unambiguous), the
+corresponding handler is invoked and given the current node as an
+argument. The result from the handler, which must be a @code{<tree>},
+takes place of the current node in the resulting tree. The name of the
+function is not accidental: it resembles rather closely an
+@code{apply-templates} function of XSLT.
+
+@section Usage
+@anchor{sxml apply-templates apply-templates}@defun apply-templates tree templates
+@end defun
+
+@node sxml fold
+@chapter (sxml fold)
+@section Overview
+@code{(sxml fold)} defines a number of variants of the @dfn{fold}
+algorithm for use in transforming SXML trees. Additionally it defines
+the layout operator, @code{fold-layout}, which might be described as a
+context-passing variant of SSAX's @code{pre-post-order}.
+
+@section Usage
+@anchor{sxml fold foldt}@defun foldt fup fhere tree
+The standard multithreaded tree fold.
+
+@var{fup} is of type [a] -> a. @var{fhere} is of type object -> a.
+
+@end defun
+
+@anchor{sxml fold foldts}@defun foldts fdown fup fhere seed tree
+The single-threaded tree fold originally defined in SSAX. @xref{sxml
+ssax,,(sxml ssax)}, for more information.
+
+@end defun
+
+@anchor{sxml fold foldts*}@defun foldts* fdown fup fhere seed tree
+A variant of @ref{sxml fold foldts,,foldts} that allows pre-order tree
+rewrites. Originally defined in Andy Wingo's 2007 paper,
+@emph{Applications of fold to XML transformation}.
+
+@end defun
+
+@anchor{sxml fold fold-values}@defun fold-values proc list . seeds
+A variant of @ref{SRFI-1 Fold and Map,fold} that allows multi-valued
+seeds. Note that the order of the arguments differs from that of
+@code{fold}.
+
+@end defun
+
+@anchor{sxml fold foldts*-values}@defun foldts*-values fdown fup fhere tree . seeds
+A variant of @ref{sxml fold foldts*,,foldts*} that allows multi-valued
+seeds. Originally defined in Andy Wingo's 2007 paper, @emph{Applications
+of fold to XML transformation}.
+
+@end defun
+
+@anchor{sxml fold fold-layout}@defun fold-layout tree bindings params layout stylesheet
+A traversal combinator in the spirit of SSAX's @ref{sxml transform
+pre-post-order,,pre-post-order}.
+
+@code{fold-layout} was originally presented in Andy Wingo's 2007 paper,
+@emph{Applications of fold to XML transformation}.
+
+@example 
+bindings := (<binding>...)
+binding  := (<tag> <bandler-pair>...)
+          | (*default* . <post-handler>)
+          | (*text* . <text-handler>)
+tag      := <symbol>
+handler-pair := (pre-layout . <pre-layout-handler>)
+          | (post . <post-handler>)
+          | (bindings . <bindings>)
+          | (pre . <pre-handler>)
+          | (macro . <macro-handler>)
+@end example
+
+@table @var
+@item pre-layout-handler
+A function of three arguments:
+
+@table @var
+@item kids
+the kids of the current node, before traversal
+
+@item params
+the params of the current node
+
+@item layout
+the layout coming into this node
+
+@end table
+
+@var{pre-layout-handler} is expected to use this information to return a
+layout to pass to the kids. The default implementation returns the
+layout given in the arguments.
+
+@item post-handler
+A function of five arguments:
+
+@table @var
+@item tag
+the current tag being processed
+
+@item params
+the params of the current node
+
+@item layout
+the layout coming into the current node, before any kids were processed
+
+@item klayout
+the layout after processing all of the children
+
+@item kids
+the already-processed child nodes
+
+@end table
+
+@var{post-handler} should return two values, the layout to pass to the
+next node and the final tree.
+
+@item text-handler
+@var{text-handler} is a function of three arguments:
+
+@table @var
+@item text
+the string
+
+@item params
+the current params
+
+@item layout
+the current layout
+
+@end table
+
+@var{text-handler} should return two values, the layout to pass to the
+next node and the value to which the string should transform.
+
+@end table
+
+@end defun
+
+@node sxml simple
+@chapter (sxml simple)
+@section Overview
+A simple interface to XML parsing and serialization.
+
+@section Usage
+@anchor{sxml simple xml->sxml}@defun xml->sxml [port]
+Use SSAX to parse an XML document into SXML. Takes one optional
+argument, @var{port}, which defaults to the current input port.
+
+@end defun
+
+@anchor{sxml simple sxml->xml}@defun sxml->xml tree [port]
+Serialize the sxml tree @var{tree} as XML. The output will be written to
+the current output port, unless the optional argument @var{port} is
+present.
+
+@end defun
+
+@anchor{sxml simple sxml->string}@defun sxml->string sxml
+Detag an sxml tree @var{sxml} into a string. Does not perform any
+formatting.
+
+@end defun
+
+@node sxml ssax
+@chapter (sxml ssax)
+@section Overview
+@subheading Functional XML parsing framework
+@subsubheading SAX/DOM and SXML parsers with support for XML Namespaces and validation
+This is a package of low-to-high level lexing and parsing procedures
+that can be combined to yield a SAX, a DOM, a validating parser, or a
+parser intended for a particular document type. The procedures in the
+package can be used separately to tokenize or parse various pieces of
+XML documents. The package supports XML Namespaces, internal and
+external parsed entities, user-controlled handling of whitespace, and
+validation. This module therefore is intended to be a framework, a set
+of "Lego blocks" you can use to build a parser following any discipline
+and performing validation to any degree. As an example of the parser
+construction, this file includes a semi-validating SXML parser.
+
+The present XML framework has a "sequential" feel of SAX yet a
+"functional style" of DOM. Like a SAX parser, the framework scans the
+document only once and permits incremental processing. An application
+that handles document elements in order can run as efficiently as
+possible. @emph{Unlike} a SAX parser, the framework does not require an
+application register stateful callbacks and surrender control to the
+parser. Rather, it is the application that can drive the framework --
+calling its functions to get the current lexical or syntax element.
+These functions do not maintain or mutate any state save the input port.
+Therefore, the framework permits parsing of XML in a pure functional
+style, with the input port being a monad (or a linear, read-once
+parameter).
+
+Besides the @var{port}, there is another monad -- @var{seed}. Most of
+the middle- and high-level parsers are single-threaded through the
+@var{seed}. The functions of this framework do not process or affect the
+@var{seed} in any way: they simply pass it around as an instance of an
+opaque datatype. User functions, on the other hand, can use the seed to
+maintain user's state, to accumulate parsing results, etc. A user can
+freely mix his own functions with those of the framework. On the other
+hand, the user may wish to instantiate a high-level parser:
+@code{SSAX:make-elem-parser} or @code{SSAX:make-parser}. In the latter
+case, the user must provide functions of specific signatures, which are
+called at predictable moments during the parsing: to handle character
+data, element data, or processing instructions (PI). The functions are
+always given the @var{seed}, among other parameters, and must return the
+new @var{seed}.
+
+From a functional point of view, XML parsing is a combined
+pre-post-order traversal of a "tree" that is the XML document itself.
+This down-and-up traversal tells the user about an element when its
+start tag is encountered. The user is notified about the element once
+more, after all element's children have been handled. The process of XML
+parsing therefore is a fold over the raw XML document. Unlike a fold
+over trees defined in [1], the parser is necessarily single-threaded --
+obviously as elements in a text XML document are laid down sequentially.
+The parser therefore is a tree fold that has been transformed to accept
+an accumulating parameter [1,2].
+
+Formally, the denotational semantics of the parser can be expressed as
+
+@smallexample 
+ parser:: (Start-tag -> Seed -> Seed) ->
+	   (Start-tag -> Seed -> Seed -> Seed) ->
+	   (Char-Data -> Seed -> Seed) ->
+	   XML-text-fragment -> Seed -> Seed
+ parser fdown fup fchar "<elem attrs> content </elem>" seed
+  = fup "<elem attrs>" seed
+	(parser fdown fup fchar "content" (fdown "<elem attrs>" seed))
+
+ parser fdown fup fchar "char-data content" seed
+  = parser fdown fup fchar "content" (fchar "char-data" seed)
+
+ parser fdown fup fchar "elem-content content" seed
+  = parser fdown fup fchar "content" (
+	parser fdown fup fchar "elem-content" seed)
+@end smallexample
+
+Compare the last two equations with the left fold
+
+@smallexample 
+ fold-left kons elem:list seed = fold-left kons list (kons elem seed)
+@end smallexample
+
+The real parser created by @code{SSAX:make-parser} is slightly more
+complicated, to account for processing instructions, entity references,
+namespaces, processing of document type declaration, etc.
+
+The XML standard document referred to in this module
+is@uref{http://www.w3.org/TR/1998/REC-xml-19980210.html}
+
+The present file also defines a procedure that parses the text of an XML
+document or of a separate element into SXML, an S-expression-based model
+of an XML Information Set. SXML is also an Abstract Syntax Tree of an
+XML document. SXML is similar but not identical to DOM; SXML is
+particularly suitable for Scheme-based XML/HTML authoring, SXPath
+queries, and tree transformations. See SXML.html for more details. SXML
+is a term implementation of evaluation of the XML document [3]. The
+other implementation is context-passing.
+
+The present frameworks fully supports the XML Namespaces
+Recommendation:@uref{http://www.w3.org/TR/REC-xml-names/} Other links:
+
+@table @asis
+@item [1]
+Jeremy Gibbons, Geraint Jones, "The Under-appreciated Unfold," Proc.
+ICFP'98, 1998, pp. 273-279.
+
+@item [2]
+Richard S. Bird, The promotion and accumulation strategies in
+transformational programming, ACM Trans. Progr. Lang. Systems,
+6(4):487-504, October 1984.
+
+@item [3]
+Ralf Hinze, "Deriving Backtracking Monad Transformers," Functional
+Pearl. Proc ICFP'00, pp. 186-197.
+
+@end table
+
+@section Usage
+@anchor{sxml ssax current-ssax-error-port}@defun current-ssax-error-port 
+@end defun
+
+@anchor{sxml ssax with-ssax-error-to-port}@defun with-ssax-error-to-port port thunk
+@end defun
+
+@anchor{sxml ssax xml-token?}@defun xml-token? _
+@verbatim 
+ -- Scheme Procedure: pair? x
+     Return `#t' if X is a pair; otherwise return `#f'.
+
+ 
+@end verbatim
+
+@end defun
+
+@anchor{sxml ssax xml-token-kind}@defspec xml-token-kind token
+@end defspec
+
+@anchor{sxml ssax xml-token-head}@defspec xml-token-head token
+@end defspec
+
+@anchor{sxml ssax make-empty-attlist}@defun make-empty-attlist 
+@end defun
+
+@anchor{sxml ssax attlist-add}@defun attlist-add attlist name-value
+@end defun
+
+@anchor{sxml ssax attlist-null?}@defun attlist-null? _
+@verbatim 
+ -- Scheme Procedure: null? x
+     Return `#t' iff X is the empty list, else `#f'.
+
+ 
+@end verbatim
+
+@end defun
+
+@anchor{sxml ssax attlist-remove-top}@defun attlist-remove-top attlist
+@end defun
+
+@anchor{sxml ssax attlist->alist}@defun attlist->alist attlist
+@end defun
+
+@anchor{sxml ssax attlist-fold}@defun attlist-fold kons knil lis1
+@end defun
+
+@anchor{sxml ssax define-parsed-entity!}@defun define-parsed-entity! entity str
+Define a new parsed entity. @var{entity} should be a symbol.
+
+Instances of &@var{entity}; in XML text will be replaced with the string
+@var{str}, which will then be parsed.
+
+@end defun
+
+@anchor{sxml ssax reset-parsed-entity-definitions!}@defun reset-parsed-entity-definitions! 
+Restore the set of parsed entity definitions to its initial state.
+
+@end defun
+
+@anchor{sxml ssax ssax:uri-string->symbol}@defun ssax:uri-string->symbol uri-str
+@end defun
+
+@anchor{sxml ssax ssax:skip-internal-dtd}@defun ssax:skip-internal-dtd port
+@end defun
+
+@anchor{sxml ssax ssax:read-pi-body-as-string}@defun ssax:read-pi-body-as-string port
+@end defun
+
+@anchor{sxml ssax ssax:reverse-collect-str-drop-ws}@defun ssax:reverse-collect-str-drop-ws fragments
+@end defun
+
+@anchor{sxml ssax ssax:read-markup-token}@defun ssax:read-markup-token port
+@end defun
+
+@anchor{sxml ssax ssax:read-cdata-body}@defun ssax:read-cdata-body port str-handler seed
+@end defun
+
+@anchor{sxml ssax ssax:read-char-ref}@defun ssax:read-char-ref port
+@end defun
+
+@anchor{sxml ssax ssax:read-attributes}@defun ssax:read-attributes port entities
+@end defun
+
+@anchor{sxml ssax ssax:complete-start-tag}@defun ssax:complete-start-tag tag-head port elems entities namespaces
+@end defun
+
+@anchor{sxml ssax ssax:read-external-id}@defun ssax:read-external-id port
+@end defun
+
+@anchor{sxml ssax ssax:read-char-data}@defun ssax:read-char-data port expect-eof? str-handler seed
+@end defun
+
+@anchor{sxml ssax ssax:xml->sxml}@defun ssax:xml->sxml port namespace-prefix-assig
+@end defun
+
+@anchor{sxml ssax ssax:make-parser}@defspec ssax:make-parser  . kw-val-pairs
+@end defspec
+
+@anchor{sxml ssax ssax:make-pi-parser}@defspec ssax:make-pi-parser orig-handlers
+@end defspec
+
+@anchor{sxml ssax ssax:make-elem-parser}@defspec ssax:make-elem-parser my-new-level-seed my-finish-element my-char-data-handler my-pi-handlers
+@end defspec
+
+@node sxml ssax input-parse
+@chapter (sxml ssax input-parse)
+@section Overview
+A simple lexer.
+
+The procedures in this module surprisingly often suffice to parse an
+input stream. They either skip, or build and return tokens, according to
+inclusion or delimiting semantics. The list of characters to expect,
+include, or to break at may vary from one invocation of a function to
+another. This allows the functions to easily parse even
+context-sensitive languages.
+
+EOF is generally frowned on, and thrown up upon if encountered.
+Exceptions are mentioned specifically. The list of expected characters
+(characters to skip until, or break-characters) may include an EOF
+"character", which is to be coded as the symbol, @code{*eof*}.
+
+The input stream to parse is specified as a @dfn{port}, which is usually
+the last (and optional) argument. It defaults to the current input port
+if omitted.
+
+If the parser encounters an error, it will throw an exception to the key
+@code{parser-error}. The arguments will be of the form @code{(@var{port}
+@var{message} @var{specialising-msg}*)}.
+
+The first argument is a port, which typically points to the offending
+character or its neighborhood. You can then use @code{port-column} and
+@code{port-line} to query the current position. @var{message} is the
+description of the error. Other arguments supply more details about the
+problem.
+
+@section Usage
+@anchor{sxml ssax input-parse peek-next-char}@defun peek-next-char [port]
+@end defun
+
+@anchor{sxml ssax input-parse assert-curr-char}@defun assert-curr-char expected-chars comment [port]
+@end defun
+
+@anchor{sxml ssax input-parse skip-until}@defun skip-until arg [port]
+@end defun
+
+@anchor{sxml ssax input-parse skip-while}@defun skip-while skip-chars [port]
+@end defun
+
+@anchor{sxml ssax input-parse next-token}@defun next-token prefix-skipped-chars break-chars [comment] [port]
+@end defun
+
+@anchor{sxml ssax input-parse next-token-of}@defun next-token-of incl-list/pred [port]
+@end defun
+
+@anchor{sxml ssax input-parse read-text-line}@defun read-text-line [port]
+@end defun
+
+@anchor{sxml ssax input-parse read-string}@defun read-string n [port]
+@end defun
+
+@anchor{sxml ssax input-parse find-string-from-port?}@defun find-string-from-port? _ _ . _
+Looks for @var{str} in @var{<input-port>}, optionally within the first
+@var{max-no-char} characters.
+
+@end defun
+
+@node sxml transform
+@chapter (sxml transform)
+@section Overview
+@heading SXML expression tree transformers
+@subheading Pre-Post-order traversal of a tree and creation of a new tree
+@smallexample 
+pre-post-order:: <tree> x <bindings> -> <new-tree>
+@end smallexample
+
+where
+
+@smallexample 
+ <bindings> ::= (<binding> ...)
+ <binding> ::= (<trigger-symbol> *preorder* . <handler>) |
+               (<trigger-symbol> *macro* . <handler>) |
+		(<trigger-symbol> <new-bindings> . <handler>) |
+		(<trigger-symbol> . <handler>)
+ <trigger-symbol> ::= XMLname | *text* | *default*
+ <handler> :: <trigger-symbol> x [<tree>] -> <new-tree>
+@end smallexample
+
+The pre-post-order function visits the nodes and nodelists
+pre-post-order (depth-first). For each @code{<Node>} of the form
+@code{(@var{name} <Node> ...)}, it looks up an association with the
+given @var{name} among its @var{<bindings>}. If failed,
+@code{pre-post-order} tries to locate a @code{*default*} binding. It's
+an error if the latter attempt fails as well. Having found a binding,
+the @code{pre-post-order} function first checks to see if the binding is
+of the form
+
+@smallexample 
+	(<trigger-symbol> *preorder* . <handler>)
+@end smallexample
+
+If it is, the handler is 'applied' to the current node. Otherwise, the
+pre-post-order function first calls itself recursively for each child of
+the current node, with @var{<new-bindings>} prepended to the
+@var{<bindings>} in effect. The result of these calls is passed to the
+@var{<handler>} (along with the head of the current @var{<Node>}). To be
+more precise, the handler is _applied_ to the head of the current node
+and its processed children. The result of the handler, which should also
+be a @code{<tree>}, replaces the current @var{<Node>}. If the current
+@var{<Node>} is a text string or other atom, a special binding with a
+symbol @code{*text*} is looked up.
+
+A binding can also be of a form
+
+@smallexample 
+	(<trigger-symbol> *macro* . <handler>)
+@end smallexample
+
+This is equivalent to @code{*preorder*} described above. However, the
+result is re-processed again, with the current stylesheet.
+
+@section Usage
+@anchor{sxml transform SRV:send-reply}@defun SRV:send-reply . fragments
+Output the @var{fragments} to the current output port.
+
+The fragments are a list of strings, characters, numbers, thunks,
+@code{#f}, @code{#t} -- and other fragments. The function traverses the
+tree depth-first, writes out strings and characters, executes thunks,
+and ignores @code{#f} and @code{'()}. The function returns @code{#t} if
+anything was written at all; otherwise the result is @code{#f} If
+@code{#t} occurs among the fragments, it is not written out but causes
+the result of @code{SRV:send-reply} to be @code{#t}.
+
+@end defun
+
+@anchor{sxml transform foldts}@defun foldts fdown fup fhere seed tree
+@end defun
+
+@anchor{sxml transform post-order}@defun post-order tree bindings
+@end defun
+
+@anchor{sxml transform pre-post-order}@defun pre-post-order tree bindings
+@end defun
+
+@anchor{sxml transform replace-range}@defun replace-range beg-pred end-pred forest
+@end defun
+
+@node sxml xpath
+@chapter (sxml xpath)
+@section Overview
+@heading SXPath: SXML Query Language
+SXPath is a query language for SXML, an instance of XML Information set
+(Infoset) in the form of s-expressions. See @code{(sxml ssax)} for the
+definition of SXML and more details. SXPath is also a translation into
+Scheme of an XML Path Language, @uref{http://www.w3.org/TR/xpath,XPath}.
+XPath and SXPath describe means of selecting a set of Infoset's items or
+their properties.
+
+To facilitate queries, XPath maps the XML Infoset into an explicit tree,
+and introduces important notions of a location path and a current,
+context node. A location path denotes a selection of a set of nodes
+relative to a context node. Any XPath tree has a distinguished, root
+node -- which serves as the context node for absolute location paths.
+Location path is recursively defined as a location step joined with a
+location path. A location step is a simple query of the database
+relative to a context node. A step may include expressions that further
+filter the selected set. Each node in the resulting set is used as a
+context node for the adjoining location path. The result of the step is
+a union of the sets returned by the latter location paths.
+
+The SXML representation of the XML Infoset (see SSAX.scm) is rather
+suitable for querying as it is. Bowing to the XPath specification, we
+will refer to SXML information items as 'Nodes':
+
+@example 
+ 	<Node> ::= <Element> | <attributes-coll> | <attrib>
+ 		   | "text string" | <PI>
+@end example
+
+This production can also be described as
+
+@example 
+	<Node> ::= (name . <Nodeset>) | "text string"
+@end example
+
+An (ordered) set of nodes is just a list of the constituent nodes:
+
+@example 
+ 	<Nodeset> ::= (<Node> ...)
+@end example
+
+Nodesets, and Nodes other than text strings are both lists. A <Nodeset>
+however is either an empty list, or a list whose head is not a symbol. A
+symbol at the head of a node is either an XML name (in which case it's a
+tag of an XML element), or an administrative name such as '@@'. This
+uniform list representation makes processing rather simple and elegant,
+while avoiding confusion. The multi-branch tree structure formed by the
+mutually-recursive datatypes <Node> and <Nodeset> lends itself well to
+processing by functional languages.
+
+A location path is in fact a composite query over an XPath tree or its
+branch. A singe step is a combination of a projection, selection or a
+transitive closure. Multiple steps are combined via join and union
+operations. This insight allows us to @emph{elegantly} implement XPath
+as a sequence of projection and filtering primitives -- converters --
+joined by @dfn{combinators}. Each converter takes a node and returns a
+nodeset which is the result of the corresponding query relative to that
+node. A converter can also be called on a set of nodes. In that case it
+returns a union of the corresponding queries over each node in the set.
+The union is easily implemented as a list append operation as all nodes
+in a SXML tree are considered distinct, by XPath conventions. We also
+preserve the order of the members in the union. Query combinators are
+high-order functions: they take converter(s) (which is a Node|Nodeset ->
+Nodeset function) and compose or otherwise combine them. We will be
+concerned with only relative location paths [XPath]: an absolute
+location path is a relative path applied to the root node.
+
+Similarly to XPath, SXPath defines full and abbreviated notations for
+location paths. In both cases, the abbreviated notation can be
+mechanically expanded into the full form by simple rewriting rules. In
+case of SXPath the corresponding rules are given as comments to a sxpath
+function, below. The regression test suite at the end of this file shows
+a representative sample of SXPaths in both notations, juxtaposed with
+the corresponding XPath expressions. Most of the samples are borrowed
+literally from the XPath specification, while the others are adjusted
+for our running example, tree1.
+
+@section Usage
+@anchor{sxml xpath nodeset?}@defun nodeset? x
+@end defun
+
+@anchor{sxml xpath node-typeof?}@defun node-typeof? crit
+@end defun
+
+@anchor{sxml xpath node-eq?}@defun node-eq? other
+@end defun
+
+@anchor{sxml xpath node-equal?}@defun node-equal? other
+@end defun
+
+@anchor{sxml xpath node-pos}@defun node-pos n
+@end defun
+
+@anchor{sxml xpath filter}@defun filter pred?
+@verbatim 
+ -- Scheme Procedure: filter pred list
+     Return all the elements of 2nd arg LIST that satisfy predicate
+     PRED.  The list is not disordered - elements that appear in the
+     result list occur in the same order as they occur in the argument
+     list. The returned list may share a common tail with the argument
+     list. The dynamic order in which the various applications of pred
+     are made is not specified.
+
+          (filter even? '(0 7 8 8 43 -4)) => (0 8 8 -4)
+
+ 
+@end verbatim
+
+@end defun
+
+@anchor{sxml xpath take-until}@defun take-until pred?
+@end defun
+
+@anchor{sxml xpath take-after}@defun take-after pred?
+@end defun
+
+@anchor{sxml xpath map-union}@defun map-union proc lst
+@end defun
+
+@anchor{sxml xpath node-reverse}@defun node-reverse node-or-nodeset
+@end defun
+
+@anchor{sxml xpath node-trace}@defun node-trace title
+@end defun
+
+@anchor{sxml xpath select-kids}@defun select-kids test-pred?
+@end defun
+
+@anchor{sxml xpath node-self}@defun node-self pred?
+@verbatim 
+ -- Scheme Procedure: filter pred list
+     Return all the elements of 2nd arg LIST that satisfy predicate
+     PRED.  The list is not disordered - elements that appear in the
+     result list occur in the same order as they occur in the argument
+     list. The returned list may share a common tail with the argument
+     list. The dynamic order in which the various applications of pred
+     are made is not specified.
+
+          (filter even? '(0 7 8 8 43 -4)) => (0 8 8 -4)
+
+ 
+@end verbatim
+
+@end defun
+
+@anchor{sxml xpath node-join}@defun node-join . selectors
+@end defun
+
+@anchor{sxml xpath node-reduce}@defun node-reduce . converters
+@end defun
+
+@anchor{sxml xpath node-or}@defun node-or . converters
+@end defun
+
+@anchor{sxml xpath node-closure}@defun node-closure test-pred?
+@end defun
+
+@anchor{sxml xpath node-parent}@defun node-parent rootnode
+@end defun
+
+@anchor{sxml xpath sxpath}@defun sxpath path
+@end defun
+
+@node texinfo
+@chapter (texinfo)
+@section Overview
+@subheading Texinfo processing in scheme
+This module parses texinfo into SXML. TeX will always be the processor
+of choice for print output, of course. However, although @code{makeinfo}
+works well for info, its output in other formats is not very
+customizable, and the program is not extensible as a whole. This module
+aims to provide an extensible framework for texinfo processing that
+integrates texinfo into the constellation of SXML processing tools.
+
+@subheading Notes on the SXML vocabulary
+Consider the following texinfo fragment:
+
+@example 
+ @@deffn Primitive set-car! pair value
+ This function...
+ @@end deffn
+@end example
+
+Logically, the category (Primitive), name (set-car!), and arguments
+(pair value) are ``attributes'' of the deffn, with the description as
+the content. However, texinfo allows for @@-commands within the
+arguments to an environment, like @code{@@deffn}, which means that
+texinfo ``attributes'' are PCDATA. XML attributes, on the other hand,
+are CDATA. For this reason, ``attributes'' of texinfo @@-commands are
+called ``arguments'', and are grouped under the special element, `%'.
+
+Because `%' is not a valid NCName, stexinfo is a superset of SXML. In
+the interests of interoperability, this module provides a conversion
+function to replace the `%' with `texinfo-arguments'.
+
+@section Usage
+@anchor{texinfo call-with-file-and-dir}@defun call-with-file-and-dir filename proc
+Call the one-argument procedure @var{proc} with an input port that reads
+from @var{filename}. During the dynamic extent of @var{proc}'s
+execution, the current directory will be @code{(dirname
+@var{filename})}. This is useful for parsing documents that can include
+files by relative path name.
+
+@end defun
+
+@anchor{texinfo texi-command-specs}@defvar texi-command-specs
+@end defvar
+
+@anchor{texinfo texi-command-depth}@defun texi-command-depth command max-depth
+Given the texinfo command @var{command}, return its nesting level, or
+@code{#f} if it nests too deep for @var{max-depth}.
+
+Examples:
+
+@example 
+ (texi-command-depth 'chapter 4)        @result{} 1
+ (texi-command-depth 'top 4)            @result{} 0
+ (texi-command-depth 'subsection 4)     @result{} 3
+ (texi-command-depth 'appendixsubsec 4) @result{} 3
+ (texi-command-depth 'subsection 2)     @result{} #f
+@end example
+
+@end defun
+
+@anchor{texinfo texi-fragment->stexi}@defun texi-fragment->stexi string-or-port
+Parse the texinfo commands in @var{string-or-port}, and return the
+resultant stexi tree. The head of the tree will be the special command,
+@code{*fragment*}.
+
+@end defun
+
+@anchor{texinfo texi->stexi}@defun texi->stexi port
+Read a full texinfo document from @var{port} and return the parsed stexi
+tree. The parsing will start at the @code{@@settitle} and end at
+@code{@@bye} or EOF.
+
+@end defun
+
+@anchor{texinfo stexi->sxml}@defun stexi->sxml tree
+Transform the stexi tree @var{tree} into sxml. This involves replacing
+the @code{%} element that keeps the texinfo arguments with an element
+for each argument.
+
+FIXME: right now it just changes % to @code{texinfo-arguments} -- that
+doesn't hang with the idea of making a dtd at some point
+
+@end defun
+
+@node texinfo docbook
+@chapter (texinfo docbook)
+@section Overview
+@c 
+This module exports procedures for transforming a limited subset of the
+SXML representation of docbook into stexi. It is not complete by any
+means. The intention is to gather a number of routines and stylesheets
+so that external modules can parse specific subsets of docbook, for
+example that set generated by certain tools.
+
+@section Usage
+@anchor{texinfo docbook *sdocbook->stexi-rules*}@defvar *sdocbook->stexi-rules*
+@end defvar
+
+@anchor{texinfo docbook *sdocbook-block-commands*}@defvar *sdocbook-block-commands*
+@end defvar
+
+@anchor{texinfo docbook sdocbook-flatten}@defun sdocbook-flatten sdocbook
+"Flatten" a fragment of sdocbook so that block elements do not nest
+inside each other.
+
+Docbook is a nested format, where e.g. a @code{refsect2} normally
+appears inside a @code{refsect1}. Logical divisions in the document are
+represented via the tree topology; a @code{refsect2} element
+@emph{contains} all of the elements in its section.
+
+On the contrary, texinfo is a flat format, in which sections are marked
+off by standalone section headers like @code{@@chapter}, and block
+elements do not nest inside each other.
+
+This function takes a nested sdocbook fragment @var{sdocbook} and
+flattens all of the sections, such that e.g.
+
+@example 
+ (refsect1 (refsect2 (para "Hello")))
+@end example
+
+becomes
+
+@example 
+ ((refsect1) (refsect2) (para "Hello"))
+@end example
+
+Oftentimes (always?) sectioning elements have @code{<title>} as their
+first element child; users interested in processing the @code{refsect*}
+elements into proper sectioning elements like @code{chapter} might be
+interested in @code{replace-titles} and @code{filter-empty-elements}.
+@xref{texinfo docbook replace-titles,,replace-titles}, and @ref{texinfo
+docbook filter-empty-elements,,filter-empty-elements}.
+
+Returns a nodeset, as described in @ref{sxml xpath}. That is to say,
+this function returns an untagged list of stexi elements.
+
+@end defun
+
+@anchor{texinfo docbook filter-empty-elements}@defun filter-empty-elements sdocbook
+Filters out empty elements in an sdocbook nodeset. Mostly useful after
+running @code{sdocbook-flatten}.
+
+@end defun
+
+@anchor{texinfo docbook replace-titles}@defun replace-titles sdocbook-fragment
+Iterate over the sdocbook nodeset @var{sdocbook-fragment}, transforming
+contiguous @code{refsect} and @code{title} elements into the appropriate
+texinfo sectioning command. Most useful after having run
+@code{sdocbook-flatten}.
+
+For example:
+
+@example 
+ (replace-titles '((refsect1) (title "Foo") (para "Bar.")))
+    @result{} '((chapter "Foo") (para "Bar."))
+@end example
+
+@end defun
+
+@node texinfo html
+@chapter (texinfo html)
+@section Overview
+This module implements transformation from @code{stexi} to HTML. Note
+that the output of @code{stexi->shtml} is actually SXML with the HTML
+vocabulary. This means that the output can be further processed, and
+that it must eventually be serialized by @ref{sxml simple
+sxml->xml,sxml->xml}. References (i.e., the @code{@@ref} family of
+commands) are resolved by a @dfn{ref-resolver}. @xref{texinfo html
+add-ref-resolver!,add-ref-resolver!}, for more information.
+
+@section Usage
+@anchor{texinfo html add-ref-resolver!}@defun add-ref-resolver! proc
+Add @var{proc} to the head of the list of ref-resolvers. @var{proc} will
+be expected to take the name of a node and the name of a manual and
+return the URL of the referent, or @code{#f} to pass control to the next
+ref-resolver in the list.
+
+The default ref-resolver will return the concatenation of the manual
+name, @code{#}, and the node name.
+
+@end defun
+
+@anchor{texinfo html stexi->shtml}@defun stexi->shtml tree
+Transform the stexi @var{tree} into shtml, resolving references via
+ref-resolvers. See the module commentary for more details.
+
+@end defun
+
+@anchor{texinfo html urlify}@defun urlify str
+@end defun
+
+@node texinfo indexing
+@chapter (texinfo indexing)
+@section Overview
+@c texinfo formatting
+Given a piece of stexi, return an index of a specified variety.
+
+Note that currently, @code{stexi-extract-index} doesn't differentiate
+between different kinds of index entries. That's a bug ;)
+
+@section Usage
+@anchor{texinfo indexing stexi-extract-index}@defun stexi-extract-index tree manual-name kind
+Given an stexi tree @var{tree}, index all of the entries of type
+@var{kind}. @var{kind} can be one of the predefined texinfo indices
+(@code{concept}, @code{variable}, @code{function}, @code{key},
+@code{program}, @code{type}) or one of the special symbols @code{auto}
+or @code{all}. @code{auto} will scan the stext for a @code{(printindex)}
+statement, and @code{all} will generate an index from all entries,
+regardless of type.
+
+The returned index is a list of pairs, the @sc{car} of which is the
+entry (a string) and the @sc{cdr} of which is a node name (a string).
+
+@end defun
+
+@node texinfo string-utils
+@chapter (texinfo string-utils)
+@section Overview
+Module @samp{(texinfo string-utils)} provides various string-related
+functions useful to Guile's texinfo support.
+
+@section Usage
+@anchor{texinfo string-utils escape-special-chars}@defun escape-special-chars str special-chars escape-char
+Returns a copy of @var{str} with all given special characters preceded
+by the given @var{escape-char}.
+
+@var{special-chars} can either be a single character, or a string
+consisting of all the special characters.
+
+@lisp 
+;; make a string regexp-safe...
+ (escape-special-chars "***(Example String)***"  
+                      "[]()/*." 
+                      #\\)
+=> "\\*\\*\\*\\(Example String\\)\\*\\*\\*"
+
+;; also can escape a singe char...
+ (escape-special-chars "richardt@@vzavenue.net"
+                      #\@@
+                      #\@@)
+=> "richardt@@@@vzavenue.net"
+@end lisp
+
+@end defun
+
+@anchor{texinfo string-utils transform-string}@defun transform-string str match? replace [start] [end]
+Uses @var{match?} against each character in @var{str}, and performs a
+replacement on each character for which matches are found.
+
+@var{match?} may either be a function, a character, a string, or
+@code{#t}. If @var{match?} is a function, then it takes a single
+character as input, and should return @samp{#t} for matches.
+@var{match?} is a character, it is compared to each string character
+using @code{char=?}. If @var{match?} is a string, then any character in
+that string will be considered a match. @code{#t} will cause every
+character to be a match.
+
+If @var{replace} is a function, it is called with the matched character
+as an argument, and the returned value is sent to the output string via
+@samp{display}. If @var{replace} is anything else, it is sent through
+the output string via @samp{display}.
+
+Note that te replacement for the matched characters does not need to be
+a single character. That is what differentiates this function from
+@samp{string-map}, and what makes it useful for applications such as
+converting @samp{#\&} to @samp{"&amp;"} in web page text. Some other
+functions in this module are just wrappers around common uses of
+@samp{transform-string}. Transformations not possible with this function
+should probably be done with regular expressions.
+
+If @var{start} and @var{end} are given, they control which portion of
+the string undergoes transformation. The entire input string is still
+output, though. So, if @var{start} is @samp{5}, then the first five
+characters of @var{str} will still appear in the returned string.
+
+@lisp 
+; these two are equivalent...
+ (transform-string str #\space #\-) ; change all spaces to -'s
+ (transform-string str (lambda (c) (char=? #\space c)) #\-)
+@end lisp
+
+@end defun
+
+@anchor{texinfo string-utils expand-tabs}@defun expand-tabs str [tab-size]
+Returns a copy of @var{str} with all tabs expanded to spaces.
+@var{tab-size} defaults to 8.
+
+Assuming tab size of 8, this is equivalent to:
+
+@lisp 
+ (transform-string str #\tab "        ")
+@end lisp
+
+@end defun
+
+@anchor{texinfo string-utils center-string}@defun center-string str [width] [chr] [rchr]
+Returns a copy of @var{str} centered in a field of @var{width}
+characters. Any needed padding is done by character @var{chr}, which
+defaults to @samp{#\space}. If @var{rchr} is provided, then the padding
+to the right will use it instead. See the examples below. left and
+@var{rchr} on the right. The default @var{width} is 80. The default
+@var{lchr} and @var{rchr} is @samp{#\space}. The string is never
+truncated.
+
+@lisp 
+ (center-string "Richard Todd" 24)
+=> "      Richard Todd      "
+
+ (center-string " Richard Todd " 24 #\=)
+=> "===== Richard Todd ====="
+
+ (center-string " Richard Todd " 24 #\< #\>)
+=> "<<<<< Richard Todd >>>>>"
+@end lisp
+
+@end defun
+
+@anchor{texinfo string-utils left-justify-string}@defun left-justify-string str [width] [chr]
+@code{left-justify-string str [width chr]}. Returns a copy of @var{str}
+padded with @var{chr} such that it is left justified in a field of
+@var{width} characters. The default @var{width} is 80. Unlike
+@samp{string-pad} from srfi-13, the string is never truncated.
+
+@end defun
+
+@anchor{texinfo string-utils right-justify-string}@defun right-justify-string str [width] [chr]
+Returns a copy of @var{str} padded with @var{chr} such that it is right
+justified in a field of @var{width} characters. The default @var{width}
+is 80. The default @var{chr} is @samp{#\space}. Unlike @samp{string-pad}
+from srfi-13, the string is never truncated.
+
+@end defun
+
+@anchor{texinfo string-utils collapse-repeated-chars}@defun collapse-repeated-chars str [chr] [num]
+Returns a copy of @var{str} with all repeated instances of @var{chr}
+collapsed down to at most @var{num} instances. The default value for
+@var{chr} is @samp{#\space}, and the default value for @var{num} is 1.
+
+@lisp 
+ (collapse-repeated-chars "H  e  l  l  o")
+=> "H e l l o"
+ (collapse-repeated-chars "H--e--l--l--o" #\-)
+=> "H-e-l-l-o"
+ (collapse-repeated-chars "H-e--l---l----o" #\- 2)
+=> "H-e--l--l--o"
+@end lisp
+
+@end defun
+
+@anchor{texinfo string-utils make-text-wrapper}@defun make-text-wrapper [#:line-width] [#:expand-tabs?] [#:tab-width] [#:collapse-whitespace?] [#:subsequent-indent] [#:initial-indent] [#:break-long-words?]
+Returns a procedure that will split a string into lines according to the
+given parameters.
+
+@table @code
+@item #:line-width
+This is the target length used when deciding where to wrap lines.
+Default is 80.
+
+@item #:expand-tabs?
+Boolean describing whether tabs in the input should be expanded. Default
+is #t.
+
+@item #:tab-width
+If tabs are expanded, this will be the number of spaces to which they
+expand. Default is 8.
+
+@item #:collapse-whitespace?
+Boolean describing whether the whitespace inside the existing text
+should be removed or not. Default is #t.
+
+If text is already well-formatted, and is just being wrapped to fit in a
+different width, then set this to @samp{#f}. This way, many common text
+conventions (such as two spaces between sentences) can be preserved if
+in the original text. If the input text spacing cannot be trusted, then
+leave this setting at the default, and all repeated whitespace will be
+collapsed down to a single space.
+
+@item #:initial-indent
+Defines a string that will be put in front of the first line of wrapped
+text. Default is the empty string, ``''.
+
+@item #:subsequent-indent
+Defines a string that will be put in front of all lines of wrapped text,
+except the first one. Default is the empty string, ``''.
+
+@item #:break-long-words?
+If a single word is too big to fit on a line, this setting tells the
+wrapper what to do. Defaults to #t, which will break up long words. When
+set to #f, the line will be allowed, even though it is longer than the
+defined @code{#:line-width}.
+
+@end table
+
+The return value is a procedure of one argument, the input string, which
+returns a list of strings, where each element of the list is one line.
+
+@end defun
+
+@anchor{texinfo string-utils fill-string}@defun fill-string str . kwargs
+Wraps the text given in string @var{str} according to the parameters
+provided in @var{keywds}, or the default setting if they are not given.
+Returns a single string with the wrapped text. Valid keyword arguments
+are discussed in @code{make-text-wrapper}.
+
+@end defun
+
+@anchor{texinfo string-utils string->wrapped-lines}@defun string->wrapped-lines str . kwargs
+@code{string->wrapped-lines str keywds ...}. Wraps the text given in
+string @var{str} according to the parameters provided in @var{keywds},
+or the default setting if they are not given. Returns a list of strings
+representing the formatted lines. Valid keyword arguments are discussed
+in @code{make-text-wrapper}.
+
+@end defun
+
+@node texinfo plain-text
+@chapter (texinfo plain-text)
+@section Overview
+Transformation from stexi to plain-text. Strives to re-create the output
+from @code{info}; comes pretty damn close.
+
+@section Usage
+@anchor{texinfo plain-text stexi->plain-text}@defun stexi->plain-text tree
+Transform @var{tree} into plain text. Returns a string.
+
+@end defun
+
+@node texinfo serialize
+@chapter (texinfo serialize)
+@section Overview
+Serialization of @code{stexi} to plain texinfo.
+
+@section Usage
+@anchor{texinfo serialize stexi->texi}@defun stexi->texi tree
+Serialize the stexi @var{tree} into plain texinfo.
+
+@end defun
+
+@node texinfo reflection
+@chapter (texinfo reflection)
+@section Overview
+Routines to generare @code{stexi} documentation for objects and modules.
+
+Note that in this context, an @dfn{object} is just a value associated
+with a location. It has nothing to do with GOOPS.
+
+@section Usage
+@anchor{texinfo reflection module-stexi-documentation}@defun module-stexi-documentation sym-name [docs-resolver]
+Return documentation for the module named @var{sym-name}. The
+documentation will be formatted as @code{stexi}
+(@pxref{texinfo,texinfo}).
+
+@end defun
+
+@anchor{texinfo reflection script-stexi-documentation}@defun script-stexi-documentation scriptpath
+Return documentation for given script. The documentation will be taken
+from the script's commentary, and will be returned in the @code{stexi}
+format (@pxref{texinfo,texinfo}).
+
+@end defun
+
+@anchor{texinfo reflection object-stexi-documentation}@defun object-stexi-documentation _ [_] [#:force]
+@end defun
+
+@anchor{texinfo reflection package-stexi-standard-copying}@defun package-stexi-standard-copying name version updated years copyright-holder permissions
+Create a standard texinfo @code{copying} section.
+
+@var{years} is a list of years (as integers) in which the modules being
+documented were released. All other arguments are strings.
+
+@end defun
+
+@anchor{texinfo reflection package-stexi-standard-titlepage}@defun package-stexi-standard-titlepage name version updated authors
+Create a standard GNU title page.
+
+@var{authors} is a list of @code{(@var{name} . @var{email})} pairs. All
+other arguments are strings.
+
+Here is an example of the usage of this procedure:
+
+@smallexample 
+ (package-stexi-standard-titlepage
+  "Foolib"
+  "3.2"
+  "26 September 2006"
+  '(("Alyssa P Hacker" . "alyssa@@example.com"))
+  '(2004 2005 2006)
+  "Free Software Foundation, Inc."
+  "Standard GPL permissions blurb goes here")
+@end smallexample
+
+@end defun
+
+@anchor{texinfo reflection package-stexi-generic-menu}@defun package-stexi-generic-menu name entries
+Create a menu from a generic alist of entries, the car of which should
+be the node name, and the cdr the description. As an exception, an entry
+of @code{#f} will produce a separator.
+
+@end defun
+
+@anchor{texinfo reflection package-stexi-standard-menu}@defun package-stexi-standard-menu name modules module-descriptions extra-entries
+Create a standard top node and menu, suitable for processing by
+makeinfo.
+
+@end defun
+
+@anchor{texinfo reflection package-stexi-extended-menu}@defun package-stexi-extended-menu name module-pairs script-pairs extra-entries
+Create an "extended" menu, like the standard menu but with a section for
+scripts.
+
+@end defun
+
+@anchor{texinfo reflection package-stexi-standard-prologue}@defun package-stexi-standard-prologue name filename category description copying titlepage menu
+Create a standard prologue, suitable for later serialization to texinfo
+and .info creation with makeinfo.
+
+Returns a list of stexinfo forms suitable for passing to
+@code{package-stexi-documentation} as the prologue. @xref{texinfo
+reflection package-stexi-documentation}, @ref{texinfo reflection
+package-stexi-standard-titlepage,package-stexi-standard-titlepage},
+@ref{texinfo reflection
+package-stexi-standard-copying,package-stexi-standard-copying}, and
+@ref{texinfo reflection
+package-stexi-standard-menu,package-stexi-standard-menu}.
+
+@end defun
+
+@anchor{texinfo reflection package-stexi-documentation}@defun package-stexi-documentation modules name filename prologue epilogue [#:module-stexi-documentation-args] [#:scripts]
+Create stexi documentation for a @dfn{package}, where a package is a set
+of modules that is released together.
+
+@var{modules} is expected to be a list of module names, where a module
+name is a list of symbols. The stexi that is returned will be titled
+@var{name} and a texinfo filename of @var{filename}.
+
+@var{prologue} and @var{epilogue} are lists of stexi forms that will be
+spliced into the output document before and after the generated modules
+documentation, respectively. @xref{texinfo reflection
+package-stexi-standard-prologue}, to create a conventional GNU texinfo
+prologue.
+
+@var{module-stexi-documentation-args} is an optional argument that, if
+given, will be added to the argument list when
+@code{module-texi-documentation} is called. For example, it might be
+useful to define a @code{#:docs-resolver} argument.
+
+@end defun
+
+@anchor{texinfo reflection package-stexi-documentation-for-include}@defun package-stexi-documentation-for-include modules module-descriptions [#:module-stexi-documentation-args]
+Create stexi documentation for a @dfn{package}, where a package is a set
+of modules that is released together.
+
+@var{modules} is expected to be a list of module names, where a module
+name is a list of symbols. Returns an stexinfo fragment.
+
+Unlike @code{package-stexi-documentation}, this function simply produces
+a menu and the module documentations instead of producing a full texinfo
+document. This can be useful if you write part of your manual by hand,
+and just use @code{@@include} to pull in the automatically generated
+parts.
+
+@var{module-stexi-documentation-args} is an optional argument that, if
+given, will be added to the argument list when
+@code{module-texi-documentation} is called. For example, it might be
+useful to define a @code{#:docs-resolver} argument.
+
+@end defun
+
+
+@c %end of fragment

@@ -1,0 +1,407 @@
+--- 2/config.make.in
++++ 2/config.make.in
+@@ -1,5 +1,5 @@
+ # @configure_input@
+-# From $Id$.
++# From $Id: config.make.in,v 1.81 2001/11/16 01:03:15 drepper Exp $.
+ # Don't edit this file.  Put configuration parameters in configparms instead.
+ 
+ version = @VERSION@
+--- 2/config-name.in
++++ 2/config-name.in
+@@ -1,5 +1,5 @@
+ /* @configure_input@ -*- C -*-
+-   Generated from $Id$.
++   Generated from $Id: config-name.in,v 1.1 1994/12/08 09:12:33 roland Exp $.
+ 
+    This is used only by the generic `uname' function for systems with no real
+    `uname' call.  If this data is not correct, it does not matter much.  */
+--- 2/hurd/hurdmalloc.c
++++ 2/hurd/hurdmalloc.c
+@@ -34,7 +34,7 @@
+  */
+ /*
+  * HISTORY
+- * $Log$
++ * $Log: hurdmalloc.c,v $
+  * Revision 1.15  2001/09/19 03:04:09  drepper
+  * (bcopy): Removed.
+  * (realloc): Replace bcopy with memcpy.
+--- 2/localedata/locales/se_NO
++++ 2/localedata/locales/se_NO
+@@ -1,4 +1,4 @@
+-#	$Id$	
++#	$Id: se_NO,v 1.1 2001/11/16 01:26:50 drepper Exp $	
+ comment_char %
+ escape_char  /
+ %
+--- 2/mach/err_boot.sub
++++ 2/mach/err_boot.sub
+@@ -25,7 +25,7 @@
+  */
+ /*
+  * HISTORY
+- * $Log$
++ * $Log: err_boot.sub,v $
+  * Revision 1.1  1992/10/06 18:29:52  roland
+  * entered into RCS
+  *
+--- 2/mach/err_ipc.sub
++++ 2/mach/err_ipc.sub
+@@ -25,7 +25,7 @@
+  */
+ /*
+  * HISTORY
+- * $Log$
++ * $Log: err_ipc.sub,v $
+  * Revision 1.1  1992/10/06 18:29:52  roland
+  * entered into RCS
+  *
+--- 2/mach/err_kern.sub
++++ 2/mach/err_kern.sub
+@@ -25,7 +25,7 @@
+  */
+ /*
+  * HISTORY
+- * $Log$
++ * $Log: err_kern.sub,v $
+  * Revision 1.5  1996/12/20 01:32:34  drepper
+  * Update from main archive 961219
+  *
+--- 2/mach/err_mach.sub
++++ 2/mach/err_mach.sub
+@@ -25,7 +25,7 @@
+  */
+ /*
+  * HISTORY
+- * $Log$
++ * $Log: err_mach.sub,v $
+  * Revision 1.1  1992/10/06 18:29:52  roland
+  * entered into RCS
+  *
+--- 2/mach/error_compat.c
++++ 2/mach/error_compat.c
+@@ -25,10 +25,10 @@
+  */
+ 
+ /* This file was broken out from:
+-	$Log$
++	$Log: error_compat.c,v $
+ 	Revision 1.2  1997/03/16 17:41:36  drepper
+ 	(__mach_error_map_compat): Give full prototype.
+-
++	
+ 	Revision 1.2  1997/03/14 15:26:28  thomas
+ 	Wed Mar  5 10:40:05 1997  Thomas Bushnell, n/BSG  <thomas@gnu.ai.mit.edu>
+ 
+--- 2/mach/errorlib.h
++++ 2/mach/errorlib.h
+@@ -25,7 +25,7 @@
+  */
+ /*
+  * HISTORY
+- * $Log$
++ * $Log: errorlib.h,v $
+  * Revision 1.5  1995/03/10 23:57:44  roland
+  * (errors): Use const for decl.
+  *
+--- 2/mach/err_server.sub
++++ 2/mach/err_server.sub
+@@ -25,7 +25,7 @@
+  */
+ /*
+  * HISTORY
+- * $Log$
++ * $Log: err_server.sub,v $
+  * Revision 1.1  1992/10/06 18:29:53  roland
+  * entered into RCS
+  *
+--- 2/mach/errstring.c
++++ 2/mach/errstring.c
+@@ -25,7 +25,7 @@
+  */
+ /*
+  * HISTORY
+- * $Log$
++ * $Log: errstring.c,v $
+  * Revision 1.2  1997/03/16 17:41:48  drepper
+  * (mach_error_string_int): Give full prototype.
+  *
+--- 2/mach/err_us.sub
++++ 2/mach/err_us.sub
+@@ -25,7 +25,7 @@
+  */
+ /*
+  * HISTORY
+- * $Log$
++ * $Log: err_us.sub,v $
+  * Revision 1.2  1993/11/23 21:14:05  mib
+  * entered into RCS
+  *
+--- 2/mach/mach/error.h
++++ 2/mach/mach/error.h
+@@ -26,7 +26,7 @@
+  */
+ /*
+  * HISTORY
+- * $Log$
++ * $Log: error.h,v $
+  * Revision 1.3  1997/03/16 17:43:08  drepper
+  * (mach_error_fn_t): Comment out declaration; it appears to be entirely
+  * unused dead code.
+--- 2/mach/mach_error.c
++++ 2/mach/mach_error.c
+@@ -25,7 +25,7 @@
+  */
+ /*
+  * HISTORY
+- * $Log$
++ * $Log: mach_error.c,v $
+  * Revision 1.2  1997/03/16 17:42:02  drepper
+  * (mach_error_string_int): Give full prototype.
+  *
+--- 2/mach/mach_error.h
++++ 2/mach/mach_error.h
+@@ -25,7 +25,7 @@
+  */
+ /*
+  * HISTORY
+- * $Log$
++ * $Log: mach_error.h,v $
+  * Revision 1.4  2001/04/01 05:03:14  roland
+  * 2001-03-11  Roland McGrath  <roland@frob.com>
+  *
+--- 2/mach/msg-destroy.c
++++ 2/mach/msg-destroy.c
+@@ -25,7 +25,7 @@
+  */
+ /*
+  * HISTORY
+- * $Log$
++ * $Log: msg-destroy.c,v $
+  * Revision 1.5  1997/06/21 01:40:07  drepper
+  * More 64bit changes.
+  *
+--- 2/mach/msgserver.c
++++ 2/mach/msgserver.c
+@@ -48,7 +48,7 @@
+  */
+ /*
+  * HISTORY
+- * $Log$
++ * $Log: msgserver.c,v $
+  * Revision 1.7  2001/07/06 04:55:34  aj
+  * Update to LGPL v2.1.
+  *
+--- 2/Makefile.in
++++ 2/Makefile.in
+@@ -1,4 +1,4 @@
+-# Generated from $Id$.
++# Generated from $Id: Makefile.in,v 1.7 2000/11/15 23:03:08 drepper Exp $.
+ 
+ srcdir = @srcdir@
+ 
+--- 2/malloc/malloc.c
++++ 2/malloc/malloc.c
+@@ -19,7 +19,7 @@
+    Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
+    02111-1307 USA.  */
+ 
+-/* $Id$
++/* $Id: malloc.c,v 1.87 2001/09/19 03:23:27 drepper Exp $
+ 
+   This work is mainly derived from malloc-2.6.4 by Doug Lea
+   <dl@cs.oswego.edu>, which is available from:
+--- 2/malloc/thread-m.h
++++ 2/malloc/thread-m.h
+@@ -19,7 +19,7 @@
+    Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
+    02111-1307 USA.  */
+ 
+-/* $Id$
++/* $Id: thread-m.h,v 1.14 2001/07/06 04:55:35 aj Exp $
+    One out of _LIBC, USE_PTHREADS, USE_THR or USE_SPROC should be
+    defined, otherwise the token NO_THREADS and dummy implementations
+    of the macros will be defined.  */
+--- 2/manual/dir
++++ 2/manual/dir
+@@ -1,4 +1,4 @@
+-$Id$
++$Id: dir,v 2.1 1997/06/19 18:22:50 drepper Exp $
+ This is the file .../info/dir, which contains the topmost node of the
+ Info hierarchy.  The first time you invoke Info you start off
+ looking at that node, which is (dir)Top.
+--- 2/math/math_private.h
++++ 2/math/math_private.h
+@@ -11,7 +11,7 @@
+ 
+ /*
+  * from: @(#)fdlibm.h 5.1 93/09/24
+- * $Id$
++ * $Id: math_private.h,v 1.17 2001/09/22 13:43:36 aj Exp $
+  */
+ 
+ #ifndef _MATH_PRIVATE_H_
+--- 2/nscd/Makefile
++++ 2/nscd/Makefile
+@@ -1,4 +1,4 @@
+-# Copyright (C) 1998, 2000, 2002 Free Software Foundation, Inc.
++# Copyright (C) 1998, 2000 Free Software Foundation, Inc.
+ # This file is part of the GNU C Library.
+ 
+ # The GNU C Library is free software; you can redistribute it and/or
+Only in extracted/git/nss: nss_db
+--- 2/resolv/gethnamaddr.c
++++ 2/resolv/gethnamaddr.c
+@@ -51,7 +51,7 @@
+ 
+ #if defined(LIBC_SCCS) && !defined(lint)
+ static char sccsid[] = "@(#)gethostnamadr.c	8.1 (Berkeley) 6/4/93";
+-static char rcsid[] = "$Id$";
++static char rcsid[] = "$Id: gethnamaddr.c,v 1.37 2001/10/26 23:49:48 drepper Exp $";
+ #endif /* LIBC_SCCS and not lint */
+ 
+ #include <sys/types.h>
+--- 2/scripts/mkinstalldirs
++++ 2/scripts/mkinstalldirs
+@@ -4,7 +4,7 @@
+ # Created: 1993-05-16
+ # Public domain
+ 
+-# $Id$
++# $Id: mkinstalldirs,v 1.1 1998/05/08 20:55:06 drepper Exp $
+ 
+ errstatus=0
+ 
+--- 2/sunrpc/rpc_clntout.c
++++ 2/sunrpc/rpc_clntout.c
+@@ -32,7 +32,7 @@
+  * From: @(#)rpc_clntout.c 1.11 89/02/22 (C) 1987 SMI
+  */
+ char clntout_rcsid[] =
+-  "$Id$";
++  "$Id: rpc_clntout.c,v 1.6 1999/11/23 17:10:21 drepper Exp $";
+ 
+ /*
+  * rpc_clntout.c, Client-stub outputter for the RPC protocol compiler
+--- 2/sunrpc/rpc_cout.c
++++ 2/sunrpc/rpc_cout.c
+@@ -32,7 +32,7 @@
+  * From: @(#)rpc_cout.c 1.13 89/02/22 (C) 1987 SMI
+  */
+ char cout_rcsid[] =
+-"$Id$";
++"$Id: rpc_cout.c,v 1.13 2001/09/05 00:07:01 drepper Exp $";
+ 
+ /*
+  * rpc_cout.c, XDR routine outputter for the RPC protocol compiler
+--- 2/sunrpc/rpc_hout.c
++++ 2/sunrpc/rpc_hout.c
+@@ -32,7 +32,7 @@
+  * From: @(#)rpc_hout.c 1.12 89/02/22 (C) 1987 SMI
+  */
+ char hout_rcsid[] =
+-  "$Id$";
++  "$Id: rpc_hout.c,v 1.7 2001/08/28 09:17:24 drepper Exp $";
+ 
+ /*
+  * rpc_hout.c, Header file outputter for the RPC protocol compiler
+--- 2/sunrpc/rpc_main.c
++++ 2/sunrpc/rpc_main.c
+@@ -32,7 +32,7 @@
+  * From @(#)rpc_main.c 1.30 89/03/30 (C) 1987 SMI;
+  */
+ const char main_rcsid[] =
+-  "$Id$";
++  "$Id: rpc_main.c,v 1.22 2001/11/02 02:15:17 drepper Exp $";
+ 
+ /*
+  * rpc_main.c, Top level of the RPC protocol compiler.
+--- 2/sunrpc/rpc_parse.c
++++ 2/sunrpc/rpc_parse.c
+@@ -32,7 +32,7 @@
+  * From: @(#)rpc_parse.c 1.8 89/02/22 (C) 1987 SMI
+  */
+ const char parse_rcsid[] =
+-  "$Id$";
++  "$Id: rpc_parse.c,v 1.5 2001/04/04 17:27:24 drepper Exp $";
+ 
+ /*
+  * rpc_parse.c, Parser for the RPC protocol compiler
+--- 2/sunrpc/rpc_sample.c
++++ 2/sunrpc/rpc_sample.c
+@@ -32,7 +32,7 @@
+  * From: @(#)rpc_sample.c  1.1  90/08/30  (C) 1987 SMI
+  */
+ char sample_rcsid[] =
+-  "$Id$";
++  "$Id: rpc_sample.c,v 1.5 1998/11/16 11:56:33 drepper Exp $";
+ 
+ /*
+  * rpc_sample.c, Sample client-server code outputter for the RPC protocol compiler
+--- 2/sunrpc/rpc_scan.c
++++ 2/sunrpc/rpc_scan.c
+@@ -32,7 +32,7 @@
+  * From: @(#)rpc_scan.c 1.11 89/02/22 (C) 1987 SMI
+  */
+ char scan_rcsid[] =
+-  "$Id$";
++  "$Id: rpc_scan.c,v 1.8 2001/04/04 17:26:50 drepper Exp $";
+ 
+ /*
+  * rpc_scan.c, Scanner for the RPC protocol compiler
+--- 2/sunrpc/rpc_svcout.c
++++ 2/sunrpc/rpc_svcout.c
+@@ -32,7 +32,7 @@
+  * From: @(#)rpc_svcout.c 1.29 89/03/30 (C) 1987 SMI
+  */
+ char svcout_rcsid[] =
+-  "$Id$";
++  "$Id: rpc_svcout.c,v 1.9 2000/06/30 06:38:07 aj Exp $";
+ 
+ /*
+  * rpc_svcout.c, Server-skeleton outputter for the RPC protocol compiler
+--- 2/sunrpc/rpc_tblout.c
++++ 2/sunrpc/rpc_tblout.c
+@@ -32,7 +32,7 @@
+  * From: @(#)rpc_tblout.c 1.4 89/02/22 (C) 1988 SMI
+  */
+ char tblout_rcsid[] =
+-  "$Id$";
++  "$Id: rpc_tblout.c,v 1.2 1997/03/27 01:51:46 drepper Exp $";
+ 
+ /*
+  * rpc_tblout.c, Dispatch table outputter for the RPC protocol compiler
+--- 2/sunrpc/rpc_util.c
++++ 2/sunrpc/rpc_util.c
+@@ -32,7 +32,7 @@
+  * From: @(#)rpc_util.c 1.11 89/02/22 (C) 1987 SMI
+  */
+ char util_rcsid[] =
+-  "$Id$";
++  "$Id: rpc_util.c,v 1.6 1998/02/16 17:41:57 drepper Exp $";
+ 
+ /*
+  * rpc_util.c, Utility routines for the RPC protocol compiler
+--- 2/sysdeps/mach/sys/reboot.h
++++ 2/sysdeps/mach/sys/reboot.h
+@@ -25,7 +25,7 @@
+  */
+ /*
+  * HISTORY
+- * $Log$
++ * $Log: reboot.h,v $
+  * Revision 1.3  2000/03/27 04:09:08  roland
+  * 2000-03-26  Roland McGrath  <roland@baalperazim.frob.com>
+  *
+--- 2/sysdeps/unix/sysv/linux/sys/quota.h
++++ 2/sysdeps/unix/sysv/linux/sys/quota.h
+@@ -31,7 +31,7 @@
+  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+  * SUCH DAMAGE.
+  *
+- * Version: $Id$
++ * Version: $Id: quota.h,v 1.7 1999/10/19 03:05:21 drepper Exp $
+  */
+ 
+ #ifndef _SYS_QUOTA_H

@@ -1,0 +1,59 @@
+--- 1/configure.in
++++ 2/configure.in
+@@ -20,7 +20,7 @@
+ AC_INIT([GNU make],[3.82],[bug-make@gnu.org])
+ 
+ AC_PREREQ(2.59)
+-AC_REVISION([[$Id$]])
++AC_REVISION([[$Id: configure.in,v 1.156 2010/07/28 05:39:50 psmith Exp $]])
+ 
+ # Autoconf setup
+ AC_CONFIG_AUX_DIR(config)
+--- 1/doc/make.texi
++++ 2/doc/make.texi
+@@ -4,7 +4,7 @@
+ 
+ @include version.texi
+ @set EDITION 0.71
+-@set RCSID $Id$
++@set RCSID $Id: make.texi,v 1.66 2010/07/19 07:10:54 psmith Exp $
+ 
+ @settitle GNU @code{make}
+ @setchapternewpage odd
+--- 1/tests/scripts/functions/foreach
++++ 2/tests/scripts/functions/foreach
+@@ -1,5 +1,5 @@
+ #                                                                    -*-perl-*-
+-# $Id$
++# $Id: foreach,v 1.5 2006/03/10 02:20:46 psmith Exp $
+ 
+ $description = "Test the foreach function.";
+ 
+--- 1/tests/test_driver.pl
++++ 2/tests/test_driver.pl
+@@ -30,7 +30,7 @@
+ # this routine controls the whole mess; each test suite sets up a few
+ # variables and then calls &toplevel, which does all the real work.
+ 
+-# $Id$
++# $Id: test_driver.pl,v 1.30 2010/07/28 05:39:50 psmith Exp $
+ 
+ 
+ # The number of test categories we've run
+--- 1/w32/include/sub_proc.h
++++ 2/w32/include/sub_proc.h
+@@ -21,11 +21,11 @@
+ /*
+  * Component Name:
+  *
+- * $Date$
++ * $Date: 2010/07/13 01:20:43 $
+  *
+- * $Source$
++ * $Source: /sources/make/make/w32/include/sub_proc.h,v $
+  *
+- * $Id$
++ * $Id: sub_proc.h,v 1.12 2010/07/13 01:20:43 psmith Exp $
+  */
+ 
+ #define EXTERN_DECL(entry, args) extern entry args

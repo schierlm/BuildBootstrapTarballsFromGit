@@ -1,0 +1,11 @@
+--- 1/bootstrap.sh
++++ 2/bootstrap.sh
+@@ -19,7 +19,7 @@
+ */
+ 
+ #define PACKAGE "sed"
+-#define VERSION "4.1.2-boot"
++#define VERSION "4.1.4-boot"
+ #define SED_FEATURE_VERSION "4.1"
+ #define BOOTSTRAP 1
+ 
