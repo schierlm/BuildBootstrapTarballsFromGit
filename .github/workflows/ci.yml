@@ -8,11 +8,14 @@ jobs:
   content:
     name: Check that all content matches the published tarballs
     runs-on: ubuntu-latest
-    timeout-minutes: 60
+    timeout-minutes: 15
 
     steps:
     - name: Checkout this repository
       uses: actions/checkout@v2
+
+    - name: Install dependencies
+      run: sudo apt-get -y install dos2unix
 
     - name: Run check-content script
       run: ./check-content.sh

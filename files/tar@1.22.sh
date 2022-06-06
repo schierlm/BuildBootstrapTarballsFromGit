@@ -1,5 +1,5 @@
 #!/bin/sh -e
-patch -p1 <../../files/tar@1.22.patch
+patch -p1 <${FILES}/tar@1.22.patch
 rm .gitignore */.gitignore
 rm gnulib.modules rebox.el README-alpha README-hacking bootstrap.conf
 rm ChangeLog.CVS directory bootstrap
