@@ -1,0 +1,11 @@
+--- 1/po/sl.po
++++ 2/po/sl.po
+@@ -1,7 +1,7 @@
+ # -*- mode:po; coding:utf-8; -*- Slovenian messages for findutils-stable.
+ # Copyright (C) 1996, 2000, 2001, 2005, 2006, 2007 Free Software Foundation, Inc.
+ # Primož Peterlin <primoz.peterlin@biofiz.mf.uni-lj.si>, 2000, 2001, 2005, 2006, 2007.
+-# $Id$
++# $Id: sl.po,v 1.23.2.17 2008/02/13 22:49:49 jay Exp $
+ #
+ msgid ""
+ msgstr ""

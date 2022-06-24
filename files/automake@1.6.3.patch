@@ -1,0 +1,21 @@
+--- 1/lib/ansi2knr.c
++++ 2/lib/ansi2knr.c
+@@ -1,6 +1,6 @@
+ /* Copyright (C) 1989, 2000 Aladdin Enterprises.  All rights reserved. */
+ 
+-/*$Id: ansi2knr.c,v 1.13 2001/05/20 05:59:43 tromey Exp $*/
++/*$Id: ansi2knr.c,v 1.3 2000/04/13 03:41:48 lpd Exp $*/
+ /* Convert ANSI C function definitions to K&R ("traditional C") syntax */
+ 
+ /*
+--- 1/mkinstalldirs
++++ 2/mkinstalldirs
+@@ -4,7 +4,7 @@
+ # Created: 1993-05-16
+ # Public domain
+ 
+-# $Id: mkinstalldirs,v 1.9 2001/10/01 06:38:06 eggert Exp $
++# $Id: mkinstalldirs,v 1.13 1999/01/05 03:18:55 bje Exp $
+ 
+ errstatus=0
+ dirmode=""

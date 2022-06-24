@@ -1,7 +1,7 @@
 # Sourced from other scripts; lists all git repositories and tarballs to compare
 
 # grep-2.0 is not available in a git repo, use grep-2.4 instead
-# sed-1.18 and sed-4.0.6 are not either, use sed-4.1.4 instead
+# sed-1.18 and sed-4.0.6 are not either, use sed-4.1.4 instead and patch it down to sed-4.0.9
 
 tarball bash@2.05b z https://mirrors.kernel.org/gnu/bash bash-2.05b.tar.gz https://git.savannah.gnu.org/git/bash.git devel-base-dist 7117c2d221b2aed4ede8600f6a36b7c1454b4f55
 tarball bash@4.4 z https://mirrors.kernel.org/gnu/bash bash-4.4.tar.gz https://git.savannah.gnu.org/git/bash.git bash-4.4 a0c0a00fc419b7bc08202a79134fcd5bc0427071
@@ -25,7 +25,13 @@ tarball make@3.82 j https://mirrors.kernel.org/gnu/make make-3.82.tar.bz2 https:
 tarball mes@0.24 z https://mirrors.kernel.org/gnu/mes mes-0.24.tar.gz https://git.savannah.gnu.org/git/mes.git v0.24 a36eb013f8f2dc78e14c7ad1d6f5faa360294780
 tarball nyacc@1.00.2 z https://download.savannah.gnu.org/releases/nyacc nyacc-1.00.2.tar.gz https://git.savannah.gnu.org/git/nyacc.git V1.00.2 06a0985332cfbc76e759da50d228d5aa01b4f6a9
 tarball patch@2.5.9 z https://mirrors.kernel.org/gnu/patch patch-2.5.9.tar.gz https://git.savannah.gnu.org/git/patch.git v2.5.9 e930d168adfce7a64caf4852892f43deacd94fc5
+tarball sed@4.0.9 z https://mirrors.kernel.org/gnu/sed sed-4.0.9.tar.gz https://github.com/mirror/sed 5b8a41362041bb4c950488745694f1242f611e66 5b8a41362041bb4c950488745694f1242f611e66
 tarball sed@4.1.4 z https://mirrors.kernel.org/gnu/sed sed-4.1.4.tar.gz https://github.com/mirror/sed 5b8a41362041bb4c950488745694f1242f611e66 5b8a41362041bb4c950488745694f1242f611e66
 tarball tar@1.22 z https://mirrors.kernel.org/gnu/tar tar-1.22.tar.gz https://git.savannah.gnu.org/git/tar.git release_1_22 9077de9fa91886697a1294891a8d4e6d17fcd30b
 tarball tcc@0.9.27 j https://download.savannah.gnu.org/releases/tinycc tcc-0.9.27.tar.bz2 https://git.savannah.gnu.org/git/tinycc.git release_0_9_27 d348a9a51d32cece842b7885d27a411436d7887b
 tarball xz@5.0.0 j https://tukaani.org/xz xz-5.0.0.tar.bz2 https://github.com/xz-mirror/xz v5.0.0 e45929260cd902036efd40c5610a8d0a50d5712b
+tarball diffutils@2.7 z https://mirrors.kernel.org/gnu/diffutils diffutils-2.7.tar.gz https://git.savannah.gnu.org/git/diffutils.git v2.7 4e44a14836a44835c63c0534b5895ac47d632759
+tarball findutils@4.2.33 z https://mirrors.kernel.org/gnu/findutils findutils-4.2.33.tar.gz https://git.savannah.gnu.org/git/findutils.git/ FINDUTILS_4_2_33-1 24c3aca21d04d3c27b9ec203223dd9127e491c4c
+tarball m4@1.4.7 j https://mirrors.kernel.org/gnu/m4 m4-1.4.7.tar.bz2 https://git.savannah.gnu.org/git/m4.git release-1.4.7 25fde5b6c53074e6f6e4da087bb187cc3e5db47c
+tarball autoconf@2.52 j https://mirrors.kernel.org/gnu/autoconf autoconf-2.52.tar.bz2 https://git.savannah.gnu.org/git/autoconf.git AUTOCONF-2.52 7131306a64b59b0244ef069db87da5274d6a31c7
+tarball automake@1.6.3 j https://mirrors.kernel.org/gnu/automake automake-1.6.3.tar.bz2 https://git.savannah.gnu.org/git/automake.git Release-1-6-3 0a3e51265335d92f216db36654bb58b05fdb7097

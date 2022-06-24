@@ -1,0 +1,11 @@
+--- 1/ChangeLog
++++ 2/ChangeLog
+@@ -3005,7 +3005,7 @@
+ 
+ 	-----
+ 
+-	$Revision$ $Date$
++	$Revision: 1.1.1.1.2.181 $ $Date: 2006/09/25 12:15:00 $
+ 
+ 	Local Variables:
+ 	coding: utf-8

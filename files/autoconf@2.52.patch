@@ -1,0 +1,171 @@
+--- 1/config/Makefile.in
++++ 2/config/Makefile.in
+@@ -81,9 +81,9 @@
+ all: all-redirect
+ .SUFFIXES:
+ $(srcdir)/Makefile.in: Makefile.am $(top_srcdir)/configure.ac $(ACLOCAL_M4) 
+-	cd $(top_srcdir) && $(AUTOMAKE) --gnu config/Makefile
++	cd $(top_srcdir) && $(AUTOMAKE) --gnu --include-deps config/Makefile
+ 
+-Makefile: $(srcdir)/Makefile.in  $(top_builddir)/config.status $(BUILT_SOURCES)
++Makefile: $(srcdir)/Makefile.in  $(top_builddir)/config.status
+ 	cd $(top_builddir) \
+ 	  && CONFIG_FILES=$(subdir)/$@ CONFIG_HEADERS= $(SHELL) ./config.status
+ 
+@@ -96,11 +96,6 @@
+ subdir = config
+ 
+ distdir: $(DISTFILES)
+-	here=`cd $(top_builddir) && pwd`; \
+-	top_distdir=`cd $(top_distdir) && pwd`; \
+-	distdir=`cd $(distdir) && pwd`; \
+-	cd $(top_srcdir) \
+-	  && $(AUTOMAKE) --include-deps --build-dir=$$here --srcdir-name=$(top_srcdir) --output-dir=$$top_distdir --gnu config/Makefile
+ 	@for file in $(DISTFILES); do \
+ 	  d=$(srcdir); \
+ 	  if test -d $$d/$$file; then \
+--- 1/config/mkinstalldirs
++++ 2/config/mkinstalldirs
+@@ -4,7 +4,7 @@
+ # Created: 1993-05-16
+ # Public domain
+ 
+-# $Id$
++# $Id: mkinstalldirs,v 1.1 2001/05/22 14:43:50 akim Exp $
+ 
+ errstatus=0
+ dirmode=""
+--- 1/doc/Makefile.in
++++ 2/doc/Makefile.in
+@@ -97,9 +97,9 @@
+ .SUFFIXES:
+ .SUFFIXES: .dvi .info .ps .texi .texinfo .txi
+ $(srcdir)/Makefile.in: Makefile.am $(top_srcdir)/configure.ac $(ACLOCAL_M4) 
+-	cd $(top_srcdir) && $(AUTOMAKE) --gnu doc/Makefile
++	cd $(top_srcdir) && $(AUTOMAKE) --gnu --include-deps doc/Makefile
+ 
+-Makefile: $(srcdir)/Makefile.in  $(top_builddir)/config.status $(BUILT_SOURCES)
++Makefile: $(srcdir)/Makefile.in  $(top_builddir)/config.status
+ 	cd $(top_builddir) \
+ 	  && CONFIG_FILES=$(subdir)/$@ CONFIG_HEADERS= $(SHELL) ./config.status
+ 
+@@ -262,11 +262,6 @@
+ subdir = doc
+ 
+ distdir: $(DISTFILES)
+-	here=`cd $(top_builddir) && pwd`; \
+-	top_distdir=`cd $(top_distdir) && pwd`; \
+-	distdir=`cd $(distdir) && pwd`; \
+-	cd $(top_srcdir) \
+-	  && $(AUTOMAKE) --include-deps --build-dir=$$here --srcdir-name=$(top_srcdir) --output-dir=$$top_distdir --gnu doc/Makefile
+ 	@for file in $(DISTFILES); do \
+ 	  d=$(srcdir); \
+ 	  if test -d $$d/$$file; then \
+Only in extracted/git: lib
+Only in extracted/git/m4: .cvsignore
+--- 1/m4/Makefile.in
++++ 2/m4/Makefile.in
+@@ -81,9 +81,9 @@
+ all: all-redirect
+ .SUFFIXES:
+ $(srcdir)/Makefile.in: Makefile.am $(top_srcdir)/configure.ac $(ACLOCAL_M4) 
+-	cd $(top_srcdir) && $(AUTOMAKE) --gnu m4/Makefile
++	cd $(top_srcdir) && $(AUTOMAKE) --gnu --include-deps m4/Makefile
+ 
+-Makefile: $(srcdir)/Makefile.in  $(top_builddir)/config.status $(BUILT_SOURCES)
++Makefile: $(srcdir)/Makefile.in  $(top_builddir)/config.status
+ 	cd $(top_builddir) \
+ 	  && CONFIG_FILES=$(subdir)/$@ CONFIG_HEADERS= $(SHELL) ./config.status
+ 
+@@ -96,11 +96,6 @@
+ subdir = m4
+ 
+ distdir: $(DISTFILES)
+-	here=`cd $(top_builddir) && pwd`; \
+-	top_distdir=`cd $(top_distdir) && pwd`; \
+-	distdir=`cd $(distdir) && pwd`; \
+-	cd $(top_srcdir) \
+-	  && $(AUTOMAKE) --include-deps --build-dir=$$here --srcdir-name=$(top_srcdir) --output-dir=$$top_distdir --gnu m4/Makefile
+ 	@for file in $(DISTFILES); do \
+ 	  d=$(srcdir); \
+ 	  if test -d $$d/$$file; then \
+--- 1/Makefile.in
++++ 2/Makefile.in
+@@ -141,9 +141,9 @@
+ .SUFFIXES:
+ .SUFFIXES: .m4 .m4f
+ $(srcdir)/Makefile.in: Makefile.am $(top_srcdir)/configure.ac $(ACLOCAL_M4) 
+-	cd $(top_srcdir) && $(AUTOMAKE) --gnu Makefile
++	cd $(top_srcdir) && $(AUTOMAKE) --gnu --include-deps Makefile
+ 
+-Makefile: $(srcdir)/Makefile.in  $(top_builddir)/config.status $(BUILT_SOURCES)
++Makefile: $(srcdir)/Makefile.in  $(top_builddir)/config.status
+ 	cd $(top_builddir) \
+ 	  && CONFIG_FILES=$@ CONFIG_HEADERS= $(SHELL) ./config.status
+ 
+@@ -322,11 +322,6 @@
+ 	-rm -rf $(distdir)
+ 	mkdir $(distdir)
+ 	-chmod 777 $(distdir)
+-	here=`cd $(top_builddir) && pwd`; \
+-	top_distdir=`cd $(distdir) && pwd`; \
+-	distdir=`cd $(distdir) && pwd`; \
+-	cd $(top_srcdir) \
+-	  && $(AUTOMAKE) --include-deps --build-dir=$$here --srcdir-name=$(top_srcdir) --output-dir=$$top_distdir --gnu Makefile
+ 	$(mkinstalldirs) $(distdir)/$(srcdir)
+ 	@for file in $(DISTFILES); do \
+ 	  d=$(srcdir); \
+--- 1/man/Makefile.in
++++ 2/man/Makefile.in
+@@ -97,9 +97,9 @@
+ .SUFFIXES:
+ .SUFFIXES: .1 .x
+ $(srcdir)/Makefile.in: Makefile.am $(top_srcdir)/configure.ac $(ACLOCAL_M4) 
+-	cd $(top_srcdir) && $(AUTOMAKE) --gnu man/Makefile
++	cd $(top_srcdir) && $(AUTOMAKE) --gnu --include-deps man/Makefile
+ 
+-Makefile: $(srcdir)/Makefile.in  $(top_builddir)/config.status $(BUILT_SOURCES)
++Makefile: $(srcdir)/Makefile.in  $(top_builddir)/config.status
+ 	cd $(top_builddir) \
+ 	  && CONFIG_FILES=$(subdir)/$@ CONFIG_HEADERS= $(SHELL) ./config.status
+ 
+@@ -151,11 +151,6 @@
+ subdir = man
+ 
+ distdir: $(DISTFILES)
+-	here=`cd $(top_builddir) && pwd`; \
+-	top_distdir=`cd $(top_distdir) && pwd`; \
+-	distdir=`cd $(distdir) && pwd`; \
+-	cd $(top_srcdir) \
+-	  && $(AUTOMAKE) --include-deps --build-dir=$$here --srcdir-name=$(top_srcdir) --output-dir=$$top_distdir --gnu man/Makefile
+ 	@for file in $(DISTFILES); do \
+ 	  d=$(srcdir); \
+ 	  if test -d $$d/$$file; then \
+Only in extracted/git: README-alpha
+Only in extracted/git/tests: .cvsignore
+--- 1/tests/Makefile.in
++++ 2/tests/Makefile.in
+@@ -98,9 +98,9 @@
+ all: all-redirect
+ .SUFFIXES:
+ $(srcdir)/Makefile.in: Makefile.am $(top_srcdir)/configure.ac $(ACLOCAL_M4) 
+-	cd $(top_srcdir) && $(AUTOMAKE) --gnits tests/Makefile
++	cd $(top_srcdir) && $(AUTOMAKE) --gnits --include-deps tests/Makefile
+ 
+-Makefile: $(srcdir)/Makefile.in  $(top_builddir)/config.status $(BUILT_SOURCES)
++Makefile: $(srcdir)/Makefile.in  $(top_builddir)/config.status
+ 	cd $(top_builddir) \
+ 	  && CONFIG_FILES=$(subdir)/$@ CONFIG_HEADERS= $(SHELL) ./config.status
+ 
+@@ -115,11 +115,6 @@
+ subdir = tests
+ 
+ distdir: $(DISTFILES)
+-	here=`cd $(top_builddir) && pwd`; \
+-	top_distdir=`cd $(top_distdir) && pwd`; \
+-	distdir=`cd $(distdir) && pwd`; \
+-	cd $(top_srcdir) \
+-	  && $(AUTOMAKE) --include-deps --build-dir=$$here --srcdir-name=$(top_srcdir) --output-dir=$$top_distdir --gnits tests/Makefile
+ 	@for file in $(DISTFILES); do \
+ 	  d=$(srcdir); \
+ 	  if test -d $$d/$$file; then \
