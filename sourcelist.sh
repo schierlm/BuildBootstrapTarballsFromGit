@@ -2,6 +2,7 @@
 
 # grep-2.0 is not available in a git repo, use grep-2.4 instead
 # sed-1.18 and sed-4.0.6 are not either, use sed-4.1.4 instead and patch it down to sed-4.0.9
+# branch for gmp-4.3.2 is not available, pick some revision from trunk where ChangeLog looks similar and patch it
 
 tarball bash@2.05b z https://mirrors.kernel.org/gnu/bash bash-2.05b.tar.gz https://git.savannah.gnu.org/git/bash.git devel-base-dist 7117c2d221b2aed4ede8600f6a36b7c1454b4f55
 tarball bash@4.4 z https://mirrors.kernel.org/gnu/bash bash-4.4.tar.gz https://git.savannah.gnu.org/git/bash.git bash-4.4 a0c0a00fc419b7bc08202a79134fcd5bc0427071
@@ -35,3 +36,6 @@ tarball findutils@4.2.33 z https://mirrors.kernel.org/gnu/findutils findutils-4.
 tarball m4@1.4.7 j https://mirrors.kernel.org/gnu/m4 m4-1.4.7.tar.bz2 https://git.savannah.gnu.org/git/m4.git release-1.4.7 25fde5b6c53074e6f6e4da087bb187cc3e5db47c
 tarball autoconf@2.52 j https://mirrors.kernel.org/gnu/autoconf autoconf-2.52.tar.bz2 https://git.savannah.gnu.org/git/autoconf.git AUTOCONF-2.52 7131306a64b59b0244ef069db87da5274d6a31c7
 tarball automake@1.6.3 j https://mirrors.kernel.org/gnu/automake automake-1.6.3.tar.bz2 https://git.savannah.gnu.org/git/automake.git Release-1-6-3 0a3e51265335d92f216db36654bb58b05fdb7097
+tarball gmp@4.3.2 j https://mirrors.kernel.org/gnu/gmp gmp-4.3.2.tar.bz2 https://github.com/ShiftMediaProject/gmp 4aab98ec08ada3c573111f30bbd58cacca013b8d 4aab98ec08ada3c573111f30bbd58cacca013b8d
+tarball mpfr@2.4.2 j https://mirrors.kernel.org/gnu/mpfr mpfr-2.4.2.tar.bz2 https://gitlab.inria.fr/mpfr/mpfr.git 2.4.2 ea4078d2806dc1cab44fba6e9b26df6b6e8a09b6
+tarball mpc@1.0.3 z https://mirrors.kernel.org/gnu/mpc mpc-1.0.3.tar.gz https://gitlab.inria.fr/mpc/mpc.git 1.0.3 7fe6670726ccccbcddf2f0f8f487bc100a367564

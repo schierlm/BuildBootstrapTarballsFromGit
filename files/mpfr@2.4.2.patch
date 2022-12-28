@@ -1,0 +1,11 @@
+--- 1/configure.in
++++ 2/configure.in
+@@ -31,7 +31,7 @@
+ dnl modified, DIST_ARCHIVES from Makefile.am needs to be updated.
+ AM_INIT_AUTOMAKE([1.10 no-define dist-bzip2 dist-zip])
+ dnl AM_INIT_AUTOMAKE([1.11 no-define dist-bzip2 dist-xz dist-zip])
+-dnl AM_MAINTAINER_MODE(enable)
++AM_MAINTAINER_MODE(enable)
+ 
+ AC_CONFIG_MACRO_DIR([m4])
+ 
